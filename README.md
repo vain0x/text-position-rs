@@ -22,7 +22,7 @@ text-position-rs = { ..., features = ["checked"] }
 
 ## See also
 
-Related projects:
+Similar libraries:
 
 - [rust-analyzer/text-size](https://github.com/rust-analyzer/text-size)
     - `TextSize`: newtype of u32 as UTF-8 index
