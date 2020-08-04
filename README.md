@@ -135,7 +135,7 @@ Write in mathematical notation:
          \          : ℕ×ℕ → ℕ×ℕ → ℕ×ℕ
 (r1, c1) \ (r2, c2) = (0, 0)           if (r1, c1) ≤ (r2, c2)
 (r1, c1) \ (r2, c2) = (0, c1 - c2)     if r1 = r2 and c1 > c2
-(r1, c1) \ (r2, c2) = (r2, c2)         if r1 > r2
+(r1, c1) \ (r2, c2) = (r1 - r2, c2)    if r1 > r2
 ```
 
 where ordering is lexicographical.
