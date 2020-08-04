@@ -110,7 +110,7 @@ Note `(ℕ×ℕ, (0, 0), +)`, where `+` is defined as above, is an instance of m
 
 ### Saturating subtraction of row-column pairs
 
-The saturating_sub, written as `x \ y`, is inversion of the addition.
+The saturating_sub, written as `x \ y` here, is inversion of the addition.
 
 Define the saturating_sub of row-column pairs by prefix-stripping of corresponding strings. For example,
 
