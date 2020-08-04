@@ -66,6 +66,24 @@ impl TextPosition for CompositePosition {
             column16: s[head..].encode_utf16().count() as u32,
         }
     }
+
+    fn saturating_sub(self, rhs: Self) -> Self {
+        match self.row.cmp(&rhs.row) {
+            Ordering::Less => Self::ZERO,
+            Ordering::Equal => Self {
+                index: self.index.saturating_sub(rhs.index),
+                row: 0,
+                column8: self.column8.saturating_sub(rhs.column8),
+                column16: self.column16.saturating_sub(rhs.column8),
+            },
+            Ordering::Greater => Self {
+                index: self.index.saturating_sub(rhs.index),
+                row: self.row - rhs.row,
+                column8: self.column8,
+                column16: self.column16,
+            },
+        }
+    }
 }
 
 impl From<char> for CompositePosition {
@@ -216,24 +234,29 @@ impl Hash for CompositePosition {
 mod tests {
     use crate::{position::TextPosition, CompositePosition};
 
-    fn s(s: &str) -> CompositePosition {
+    const ZERO: CompositePosition = CompositePosition::ZERO;
+
+    fn pos_of(s: &str) -> CompositePosition {
         CompositePosition::from_str(s)
     }
 
     #[test]
     fn test_from_str_empty() {
-        assert_eq!(s(""), CompositePosition::ZERO);
+        assert_eq!(pos_of(""), CompositePosition::ZERO);
     }
 
     #[test]
     fn test_from_str_ascii_single_line() {
-        assert_eq!(s("Hello, world!"), CompositePosition::new(13, 0, 13, 13));
+        assert_eq!(
+            pos_of("Hello, world!"),
+            CompositePosition::new(13, 0, 13, 13)
+        );
     }
 
     #[test]
     fn test_from_str_ascii_multiple_line() {
         assert_eq!(
-            CompositePosition::from_str("12345\n1234567\n12345"),
+            pos_of("12345\n1234567\n12345"),
             CompositePosition::new(19, 2, 5, 5)
         );
     }
@@ -241,31 +264,25 @@ mod tests {
     #[test]
     fn test_from_str_unicode() {
         assert_eq!(
-            CompositePosition::from_str("いろはにほへと\nちりぬるを\nわかよたれそ\nつねならむ"),
+            pos_of("いろはにほへと\nちりぬるを\nわかよたれそ\nつねならむ"),
             CompositePosition::new(72, 3, 15, 15)
         );
     }
 
     #[test]
     fn test_from_str_surrogate_pair() {
-        assert_eq!(
-            CompositePosition::from_str("🐧"),
-            CompositePosition::new(4, 0, 4, 2)
-        );
+        assert_eq!(pos_of("🐧"), CompositePosition::new(4, 0, 4, 2));
     }
 
     #[test]
     fn test_from_str_crlf() {
-        assert_eq!(
-            CompositePosition::from_str("\r\n"),
-            CompositePosition::new(2, 1, 0, 0)
-        );
+        assert_eq!(pos_of("\r\n"), CompositePosition::new(2, 1, 0, 0));
     }
 
     #[test]
     fn test_add_single_line() {
         assert_eq!(
-            CompositePosition::from_str("12345") + CompositePosition::from_str("6789"),
+            pos_of("12345") + pos_of("6789"),
             CompositePosition::new(9, 0, 9, 9)
         )
     }
@@ -273,18 +290,56 @@ mod tests {
     #[test]
     fn test_add_multiple_line() {
         assert_eq!(
-            CompositePosition::from_str("12345\n12345") + CompositePosition::from_str("67\n12345"),
+            pos_of("12345\n12345") + pos_of("67\n12345"),
             CompositePosition::new(19, 2, 5, 5)
         )
     }
 
     #[test]
+    fn test_saturating_sub_minus_row() {
+        assert_eq!(
+            pos_of("\n\n\n\n123456").saturating_sub(pos_of("\n\n\n\n\n1")),
+            ZERO
+        );
+    }
+
+    #[test]
+    fn test_saturating_sub_minus_column() {
+        assert_eq!(
+            pos_of("\n\n\n\n123456").saturating_sub(pos_of("\n\n\n\n1234567")),
+            ZERO
+        );
+    }
+
+    #[test]
+    fn test_saturating_sub_equal() {
+        let pos = pos_of("\n\n\n\n123456");
+        assert_eq!(pos.saturating_sub(pos), ZERO);
+    }
+
+    #[test]
+    fn test_saturating_sub_plus_row() {
+        assert_eq!(
+            pos_of("\n\n\n12\n123456").saturating_sub(pos_of("\n\n\n12")),
+            pos_of("\n123456")
+        );
+    }
+
+    #[test]
+    fn test_saturating_sub_plus_column() {
+        assert_eq!(
+            pos_of("\n\n\n\n123456").saturating_sub(pos_of("\n\n\n\n1")),
+            pos_of("23456")
+        );
+    }
+
+    #[test]
     fn test_display_zero() {
-        assert_eq!(format!("{}", CompositePosition::ZERO), "1:1");
+        assert_eq!(format!("{}", ZERO), "1:1");
     }
 
     #[test]
     fn test_display_nonzero() {
-        assert_eq!(format!("{}", s("\n\n\nxx")), "4:3");
+        assert_eq!(format!("{}", pos_of("\n\n\nxx")), "4:3");
     }
 }

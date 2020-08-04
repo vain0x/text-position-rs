@@ -12,4 +12,9 @@ pub trait TextPosition: Clone + Ord {
 
     /// Calculate a text position pointing to the end of string.
     fn from_str(s: &str) -> Self;
+
+    /// Calculate the distance from `rhs` to `self`.
+    ///
+    /// Return `ZERO` if `self <= rhs`.
+    fn saturating_sub(self, rhs: Self) -> Self;
 }

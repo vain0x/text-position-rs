@@ -28,6 +28,12 @@ impl TextPosition for Utf8Index {
             index: s.len() as u32,
         }
     }
+
+    fn saturating_sub(self, rhs: Self) -> Self {
+        Self {
+            index: self.index.saturating_sub(rhs.index),
+        }
+    }
 }
 
 impl AddAssign for Utf8Index {
