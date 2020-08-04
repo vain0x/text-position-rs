@@ -31,7 +31,7 @@ text-position-rs = { ..., features = ["checked"] }
 
 Position:
 
-```rs
+```rust
 use text_position_rs::Utf8Position;
 
 let pos = Utf8Position::new(2, 6);
@@ -40,7 +40,7 @@ assert_eq!(format!("{}", pos), "3:7");
 
 Range:
 
-```rs
+```rust
 use text_position_rs::Utf8Position;
 
 let start = Utf8Position::new(2, 4);
@@ -67,38 +67,31 @@ Similar libraries:
 
 `Utf8Index`, which is just a non-negative integer, supports these operations obviously. What about `Utf8Position`?
 
-### Addition of (row, column) pairs
+### Addition of row-column pairs
 
-`Utf8Position` is a (row, column) pair. Introduce consistent addition and subtraction on it with analogue to string concatenation.
+`Utf8Position` is a row-column pair. Introduce consistent addition and subtraction on it with analogue to string concatenation.
 
 Imagine there is a text document and some position is chosen, say (2, 6). Select from the start of document to the chosen position:
 
-<div style="line-height: 1; font-size: large">
+![](./docs/images/text-with-selection.png)
 
-1. <span style="background: cyan; color: black">Lorem ipsum dolor sit amet,</span>
-2. <span style="background: cyan; color: black">consectetur adipiscing elit,</span>
-3. <span style="background: cyan; color: black; border-right: solid 2px black">sed do</span> eiusmod tempor incididunt
-4. ut labore et dolore magna aliqua...
-
-</div>
-
-There are two properties about (row, number) pair of the position and selected string:
+There are two properties about row-number pair of the position and selected string:
 
 - The row number, which starts from 0 here, equals to the **number of newlines** (`\r\n` or `\n`) in the selected string.
 - The column number, which starts from 0 here, equals to the **length of the final line** in the selected string.
 
-Map from a (row, column) pair to a string that consists of `row` newlines and `column` bytes after that: for example, (2, 6) <-> `"\n\n123456"`.
+Map from a row-column pair to a string that consists of `row` newlines and `column` bytes after that: for example, (2, 6) <-> `"\n\n123456"`.
 
-Define the addition of (row, column) pairs by concatenating such strings. For example,
+Define the addition of row-column pairs by concatenating such strings. For example,
 
-```
+```rust
 (2, 6) + (0, 2)
 → "\n\n123456" + "12"
 → "\n\n12345612"
 → (2, 8)
 ```
 
-```
+```rust
 (2, 6) + (1, 2)
 → "\n\n123456" + "\n12"
 → "\n\n123456\n12"
@@ -115,20 +108,20 @@ Write in mathematical notation:
 
 Note `(ℕ×ℕ, (0, 0), +)`, where `+` is defined as above, is an instance of monoid.
 
-### Saturating subtraction of (row, number) pairs
+### Saturating subtraction of row-column pairs
 
 The saturating_sub, written as `x \ y`, is inversion of the addition.
 
-Define the saturating_sub of (row, column) pairs by prefix-stripping of corresponding strings. For example,
+Define the saturating_sub of row-column pairs by prefix-stripping of corresponding strings. For example,
 
-```
+```rust
 (2, 8) \ (2, 6)
 = "\n\n12345678" \ "\n\n123456"
 =           "78"
 = (0, 2)
 ```
 
-```
+```rust
 (3, 2) \ (2, 6)
 = "\n\n\n12" \ "\n\n123456"
 = "\n\n\n12" \ "\n\n"
