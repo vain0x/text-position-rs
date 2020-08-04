@@ -84,6 +84,12 @@ impl From<&'_ str> for Utf16Position {
     }
 }
 
+impl From<Utf16Position> for (u32, u32) {
+    fn from(pos: Utf16Position) -> (u32, u32) {
+        (pos.row, pos.column)
+    }
+}
+
 impl Debug for Utf16Position {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         Display::fmt(self, f)

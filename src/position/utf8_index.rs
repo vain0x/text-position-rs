@@ -24,7 +24,9 @@ impl TextPosition for Utf8Index {
     const ZERO: Self = Self { index: 0 };
 
     fn from_str(s: &str) -> Self {
-        Self::new(s.len() as u32)
+        Self {
+            index: s.len() as u32,
+        }
     }
 }
 
@@ -38,13 +40,23 @@ impl Add for Utf8Index {
     type Output = Self;
 
     fn add(self, rhs: Self) -> Self {
-        Self::new(self.index + rhs.index)
+        Self {
+            index: self.index + rhs.index,
+        }
+    }
+}
+
+impl From<u32> for Utf8Index {
+    fn from(index: u32) -> Self {
+        Self { index }
     }
 }
 
 impl From<char> for Utf8Index {
     fn from(c: char) -> Self {
-        Self::new(c.len_utf8() as u32)
+        Self {
+            index: c.len_utf8() as u32,
+        }
     }
 }
 
