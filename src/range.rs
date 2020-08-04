@@ -3,8 +3,12 @@
 use crate::{position::TextPosition, CompositePosition, Utf16Position, Utf8Index, Utf8Position};
 use std::{
     fmt::{self, Debug, Display, Formatter},
-    ops::Range,
+    ops::{Add, Range},
 };
+
+// DESIGN: Prefer (index, len) over (start, end)
+//         because invariant `len >= 0` is easier to encode in type system
+//         than `start <= end`.
 
 /// Range of text between two positions.
 ///
@@ -14,7 +18,8 @@ use std::{
 /// // Example of creation.
 /// let start = Utf8Position::new(2, 4);
 /// let end = Utf8Position::new(4, 8);
-/// let range = TextRange::new(start, end); // TextRange<Utf8Position> type
+/// let range: TextRange<Utf8Position> =
+///     TextRange::from(start..end);
 ///
 /// // Example of operation.
 /// let middle = Utf8Position::new(3, 3);
@@ -23,74 +28,85 @@ use std::{
 #[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 pub struct TextRange<P> {
     /// Start position of text range.
-    pub start: P,
+    pub index: P,
 
-    /// End position of text range.
-    pub end: P,
+    /// Size of text range.
+    pub len: P,
 }
 
 impl<P: TextPosition> TextRange<P> {
     pub const ZERO: Self = Self {
-        start: P::ZERO,
-        end: P::ZERO,
+        index: P::ZERO,
+        len: P::ZERO,
     };
 
     /// Create a range.
-    pub fn new(start: P, end: P) -> Self {
-        Self { start, end }
+    pub fn at(index: P, len: P) -> Self {
+        Self { index, len }
     }
 
     /// Create an empty range pointing to a position.
-    pub fn empty(pos: P) -> Self {
+    pub fn empty(index: P) -> Self {
         Self {
-            start: pos.clone(),
-            end: pos,
+            index,
+            len: P::ZERO,
         }
     }
 
     /// Create a range from origin to end.
-    pub fn up_to(end: P) -> Self {
+    pub fn up_to(len: P) -> Self {
         Self {
-            start: P::ZERO,
-            end,
+            index: P::ZERO,
+            len,
         }
     }
 
-    /// Create an empty range pointing to the start position.
-    pub fn start_point(self) -> Self {
-        Self::empty(self.start)
+    pub fn start(self) -> P {
+        self.index
     }
 
-    /// Create an empty range pointing to the end position.
-    pub fn end_point(self) -> Self {
-        Self::empty(self.end)
+    pub fn end(self) -> P {
+        self.index + self.len
+    }
+
+    /// Empty range pointing to the start position.
+    pub fn to_start(self) -> Self {
+        Self::empty(self.end())
+    }
+
+    /// Empty range pointing to the end position.
+    pub fn to_end(self) -> Self {
+        Self::empty(self.end())
     }
 
     /// Whether the range contains a position inclusively.
-    /// True when `pos == self.end`.
+    ///
+    /// True if `pos == self.end()`.
     pub fn contains_inclusive(self, pos: P) -> bool {
-        self.start <= pos && pos <= self.end
+        self.index <= pos && pos <= self.end()
     }
 
     /// Whether the range contains another range entirely.
     pub fn covers(self, other: Self) -> bool {
-        self.start <= other.start && other.end <= self.end
+        // QUESTION: More efficient way?
+        self.clone().start() <= other.clone().start() && other.end() <= self.end()
     }
 
-    /// Get whether a range is empty.
+    /// Whether the range is empty.
     ///
     /// ```
     /// use text_position_rs::{TextRange, Utf8Index};
     ///
     /// // Empty:
-    /// assert!(TextRange::<Utf8Index>::ZERO.is_empty());
+    /// let empty: TextRange<Utf8Index> = TextRange::ZERO;
+    /// assert!(empty.is_empty());
     /// assert!(TextRange::empty(Utf8Index::new(1)).is_empty());
     ///
     /// // Non-empty:
-    /// assert!(!TextRange::new(Utf8Index::new(1), Utf8Index::new(2)).is_empty());
+    /// assert!(!TextRange::from(Utf8Index::new(1)..Utf8Index::new(2)).is_empty());
     /// ```
     pub fn is_empty(self) -> bool {
-        self.start == self.end
+        self.len == P::ZERO
     }
 
     /// Extend a range to cover the other range.
@@ -98,36 +114,38 @@ impl<P: TextPosition> TextRange<P> {
     /// ```
     /// use text_position_rs::{TextRange, Utf8Index};
     ///
-    /// let first_range = TextRange::new(Utf8Index::new(2), Utf8Index::new(4)); // 2..4
-    /// let second_range = TextRange::new(Utf8Index::new(6), Utf8Index::new(8)); // 6..8
-    /// let extended_range = TextRange::new(Utf8Index::new(2), Utf8Index::new(8)); // 2..8
+    /// let first_range = TextRange::from(Utf8Index::new(2)..Utf8Index::new(4));
+    /// let second_range = TextRange::from(Utf8Index::new(6)..Utf8Index::new(8));
+    /// let extended_range = TextRange::from(Utf8Index::new(2)..Utf8Index::new(8));
     /// assert_eq!(first_range.extend(second_range), extended_range);
     ///
     /// // Reversed case.
     /// assert_eq!(second_range.extend(first_range), extended_range);
     /// ```
     pub fn extend(self, other: Self) -> Self {
-        Self {
-            start: self.start.min(other.start),
-            end: self.end.max(other.end),
-        }
+        // QUESTION: More efficient way?
+        let start = self.clone().start().min(other.clone().start());
+        let end = self.end().max(other.end());
+        Self::from(start..end)
     }
 }
 
-impl<P> From<Range<P>> for TextRange<P> {
+impl<P: TextPosition> From<Range<P>> for TextRange<P> {
     fn from(range: Range<P>) -> Self {
-        TextRange {
-            start: range.start,
-            end: range.end,
+        let Range { start, end } = range;
+        Self {
+            index: start.clone(),
+            len: end.saturating_sub(start),
         }
     }
 }
 
-impl<P> From<TextRange<P>> for Range<P> {
+impl<P: TextPosition + Add<Output = P>> From<TextRange<P>> for Range<P> {
     fn from(range: TextRange<P>) -> Self {
+        let TextRange { index, len } = range;
         Range {
-            start: range.start,
-            end: range.end,
+            start: index.clone(),
+            end: index + len,
         }
     }
 }
@@ -140,7 +158,7 @@ impl Debug for TextRange<Utf8Index> {
 
 impl Display for TextRange<Utf8Index> {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        write!(f, "{}..{}", self.start, self.end)
+        write!(f, "{}..{}", self.start(), self.end())
     }
 }
 
@@ -170,13 +188,9 @@ fn fmt_gnu(
 
 impl Display for TextRange<Utf8Position> {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_gnu(
-            f,
-            self.start.row,
-            self.start.column,
-            self.end.row,
-            self.end.column,
-        )
+        let start = self.start();
+        let end = self.end();
+        fmt_gnu(f, start.row, start.column, end.row, end.column)
     }
 }
 
@@ -188,13 +202,9 @@ impl Debug for TextRange<Utf16Position> {
 
 impl Display for TextRange<Utf16Position> {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_gnu(
-            f,
-            self.start.row,
-            self.start.column,
-            self.end.row,
-            self.end.column,
-        )
+        let start = self.start();
+        let end = self.end();
+        fmt_gnu(f, start.row, start.column, end.row, end.column)
     }
 }
 
@@ -206,13 +216,9 @@ impl Debug for TextRange<CompositePosition> {
 
 impl Display for TextRange<CompositePosition> {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_gnu(
-            f,
-            self.start.row,
-            self.start.column8,
-            self.end.row,
-            self.end.column8,
-        )
+        let start = self.start();
+        let end = self.end();
+        fmt_gnu(f, start.row, start.column8, end.row, end.column8)
     }
 }
 
@@ -227,12 +233,15 @@ mod tests {
 
     #[test]
     fn test_display_nonzero() {
-        fn s(s: &str) -> Utf8Position {
+        fn pos_of(s: &str) -> Utf8Position {
             Utf8Position::from_str(s)
         }
 
         assert_eq!(
-            format!("{}", TextRange::new(s("Hello, "), s("Hello, world"))),
+            format!(
+                "{}",
+                TextRange::from(pos_of("Hello, ")..pos_of("Hello, world"))
+            ),
             "1.8-1.13"
         );
     }

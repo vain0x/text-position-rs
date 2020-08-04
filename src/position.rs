@@ -1,12 +1,14 @@
 // LICENSE: CC0-1.0
 
+use std::ops::Add;
+
 pub(crate) mod composite_position;
 pub(crate) mod utf16_position;
 pub(crate) mod utf8_index;
 pub(crate) mod utf8_position;
 
 /// Some representation of text position.
-pub trait TextPosition: Clone + Ord {
+pub trait TextPosition: Clone + Ord + Add<Output = Self> {
     /// Origin.
     const ZERO: Self;
 
