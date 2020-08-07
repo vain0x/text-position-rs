@@ -59,9 +59,9 @@ impl Add for Utf16Position {
     type Output = Self;
 
     fn add(self, rhs: Self) -> Self {
-        if self.row == 0 {
+        if rhs.row == 0 {
             Self {
-                row: rhs.row,
+                row: self.row,
                 column: self.column + rhs.column,
             }
         } else {
@@ -164,6 +164,11 @@ mod tests {
     #[test]
     fn test_add_single_line() {
         assert_eq!(pos_of("12345") + pos_of("6789"), pos_at(0, 9))
+    }
+
+    #[test]
+    fn test_add_newline() {
+        assert_eq!(pos_of("12345") + pos_of("\n"), pos_at(1, 0));
     }
 
     #[test]

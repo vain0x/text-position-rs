@@ -126,10 +126,10 @@ impl Add for CompositePosition {
     fn add(self, rhs: Self) -> Self {
         let index = self.index + rhs.index;
 
-        if self.row == 0 {
+        if rhs.row == 0 {
             Self {
                 index,
-                row: rhs.row,
+                row: self.row,
                 column8: self.column8 + rhs.column8,
                 column16: self.column16 + rhs.column16,
             }
@@ -291,6 +291,11 @@ mod tests {
             pos_of("12345") + pos_of("6789"),
             CompositePosition::new(9, 0, 9, 9)
         )
+    }
+
+    #[test]
+    fn test_add_newline() {
+        assert_eq!(pos_of("12345") + pos_of("\n"), pos_of("12345\n"));
     }
 
     #[test]
