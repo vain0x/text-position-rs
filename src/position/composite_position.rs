@@ -107,6 +107,12 @@ impl From<char> for CompositePosition {
     }
 }
 
+impl From<&'_ str> for CompositePosition {
+    fn from(s: &str) -> Self {
+        Self::from_str(s)
+    }
+}
+
 impl AddAssign for CompositePosition {
     fn add_assign(&mut self, rhs: Self) {
         let sum = *self + rhs;
