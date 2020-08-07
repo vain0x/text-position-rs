@@ -109,20 +109,22 @@ impl<P: TextPosition> TextRange<P> {
         self.len == P::ZERO
     }
 
-    /// Extend a range to cover the other range.
+    /// Make a range covering two ranges.
+    ///
+    /// c.f. <https://en.wikipedia.org/wiki/Join_and_meet>.
     ///
     /// ```
     /// use text_position_rs::{TextRange, Utf8Index};
     ///
     /// let first_range = TextRange::from(Utf8Index::new(2)..Utf8Index::new(4));
     /// let second_range = TextRange::from(Utf8Index::new(6)..Utf8Index::new(8));
-    /// let extended_range = TextRange::from(Utf8Index::new(2)..Utf8Index::new(8));
-    /// assert_eq!(first_range.extend(second_range), extended_range);
+    /// let joined_range = TextRange::from(Utf8Index::new(2)..Utf8Index::new(8));
+    /// assert_eq!(first_range.join(second_range), joined_range);
     ///
     /// // Reversed case.
-    /// assert_eq!(second_range.extend(first_range), extended_range);
+    /// assert_eq!(second_range.join(first_range), joined_range);
     /// ```
-    pub fn extend(self, other: Self) -> Self {
+    pub fn join(self, other: Self) -> Self {
         // QUESTION: More efficient way?
         let start = self.clone().start().min(other.clone().start());
         let end = self.end().max(other.end());
