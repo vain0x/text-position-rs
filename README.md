@@ -75,7 +75,7 @@ Imagine there is a text document and some position is chosen, say (2, 6). Select
 
 ![](./docs/images/text-with-selection.png)
 
-There are two properties about row-number pair of the position and selected string:
+There are two properties about row-column pair of the position and selected string:
 
 - The row number, which starts from 0 here, equals to the **number of newlines** (`\r\n` or `\n`) in the selected string.
 - The column number, which starts from 0 here, equals to the **length of the final line** in the selected string.
