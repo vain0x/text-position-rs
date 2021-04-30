@@ -82,8 +82,11 @@ impl<P: TextPosition> TextRange<P> {
     /// Whether the range contains a position inclusively.
     ///
     /// True if `pos == self.end()`.
-    pub fn contains_inclusive(self, pos: P) -> bool {
-        self.index <= pos && pos <= self.end()
+    pub fn contains_inclusive<TOtherPos>(self, pos: TOtherPos) -> bool
+    where
+        TOtherPos: PartialOrd<P>,
+    {
+        pos >= self.index && pos <= self.end()
     }
 
     /// Whether the range contains another range entirely.
@@ -226,7 +229,17 @@ impl Display for TextRange<CompositePosition> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{TextPosition, TextRange, Utf8Position};
+    use crate::{CompositePosition, TextPosition, TextRange, Utf8Position};
+
+    #[test]
+    fn test_contains_inclusive_for_other_type() {
+        let s = "🐧🐧";
+        let t = "🐧🐧🐧";
+        let range = TextRange::<CompositePosition>::from(
+            CompositePosition::from(s)..CompositePosition::from(t),
+        );
+        assert!(range.contains_inclusive(Utf8Position::from(s)));
+    }
 
     #[test]
     fn test_display_zero() {
