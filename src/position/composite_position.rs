@@ -16,7 +16,7 @@ use std::{
 /// - column16: Column number as number of UTF-16 code units (basically half of bytes).
 ///
 /// All of them start from 0.
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Default)]
 pub struct CompositePosition {
     /// UTF-8 index.
     pub index: u32,
