@@ -11,9 +11,15 @@ Provide text position representations and range of them.
 - `Utf16Position`: row-column pair in UTF-16. Could be used for LSP, Win32 API, etc.
 - `CompositePosition`: All-in-one of the above three.
 
-**[TextRange&lt;P&gt;](./src/range.rs)** is a type parameterized  over `P: TextPosition`.
+**[TextRange&lt;P&gt;](./src/range.rs)** is a type parameterized over `P: TextPosition`.
 
 ## Install
+
+In `Cargo.toml`:
+
+```rs
+text-position-rs = { version = "0.3.0", git = "https://github.com/vain0x/text-position-rs", rev = "6a63f748d68c4f4a35ef43a82442741464d8e25c" }
+```
 
 *TODO: Publish to crates.io*
 
