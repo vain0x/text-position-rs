@@ -74,7 +74,7 @@ impl TextPosition for CompositePosition {
                 index: self.index.saturating_sub(rhs.index),
                 row: 0,
                 column8: self.column8.saturating_sub(rhs.column8),
-                column16: self.column16.saturating_sub(rhs.column8),
+                column16: self.column16.saturating_sub(rhs.column16),
             },
             Ordering::Greater => Self {
                 index: self.index.saturating_sub(rhs.index),
