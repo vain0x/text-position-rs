@@ -162,6 +162,84 @@ impl From<CompositePosition> for Utf16Position {
     }
 }
 
+// Compare to Utf8Index:
+
+impl PartialEq<Utf8Index> for CompositePosition {
+    fn eq(&self, other: &Utf8Index) -> bool {
+        Utf8Index::from(*self).eq(other)
+    }
+}
+
+impl PartialEq<CompositePosition> for Utf8Index {
+    fn eq(&self, other: &CompositePosition) -> bool {
+        self.eq(&Utf8Index::from(*other))
+    }
+}
+
+impl PartialOrd<Utf8Index> for CompositePosition {
+    fn partial_cmp(&self, other: &Utf8Index) -> Option<Ordering> {
+        Utf8Index::from(*self).partial_cmp(other)
+    }
+}
+
+impl PartialOrd<CompositePosition> for Utf8Index {
+    fn partial_cmp(&self, other: &CompositePosition) -> Option<Ordering> {
+        self.partial_cmp(&Utf8Index::from(*other))
+    }
+}
+
+// Compare to Utf8Position:
+
+impl PartialEq<Utf8Position> for CompositePosition {
+    fn eq(&self, other: &Utf8Position) -> bool {
+        Utf8Position::from(*self).eq(other)
+    }
+}
+
+impl PartialEq<CompositePosition> for Utf8Position {
+    fn eq(&self, other: &CompositePosition) -> bool {
+        self.eq(&Utf8Position::from(*other))
+    }
+}
+
+impl PartialOrd<Utf8Position> for CompositePosition {
+    fn partial_cmp(&self, other: &Utf8Position) -> Option<Ordering> {
+        Utf8Position::from(*self).partial_cmp(other)
+    }
+}
+
+impl PartialOrd<CompositePosition> for Utf8Position {
+    fn partial_cmp(&self, other: &CompositePosition) -> Option<Ordering> {
+        self.partial_cmp(&Utf8Position::from(*other))
+    }
+}
+
+// Compare to Utf16Position:
+
+impl PartialEq<Utf16Position> for CompositePosition {
+    fn eq(&self, other: &Utf16Position) -> bool {
+        Utf16Position::from(*self).eq(other)
+    }
+}
+
+impl PartialEq<CompositePosition> for Utf16Position {
+    fn eq(&self, other: &CompositePosition) -> bool {
+        self.eq(&Utf16Position::from(*other))
+    }
+}
+
+impl PartialOrd<Utf16Position> for CompositePosition {
+    fn partial_cmp(&self, other: &Utf16Position) -> Option<Ordering> {
+        Utf16Position::from(*self).partial_cmp(other)
+    }
+}
+
+impl PartialOrd<CompositePosition> for Utf16Position {
+    fn partial_cmp(&self, other: &CompositePosition) -> Option<Ordering> {
+        self.partial_cmp(&Utf16Position::from(*other))
+    }
+}
+
 #[allow(unused)]
 fn assert_equality_consistency(it: &CompositePosition, other: &CompositePosition, equal: bool) {
     if equal {
