@@ -133,6 +133,32 @@ impl<P: TextPosition> TextRange<P> {
         let end = self.end().max(other.end());
         Self::from(start..end)
     }
+
+    /// Make a range that is covered by two ranges.
+    ///
+    /// Return an empty range at `self.start()` if two are disjoint.
+    ///
+    /// ```
+    /// use text_position_rs::{TextRange, Utf8Index};
+    ///
+    /// let first_range = TextRange::from(Utf8Index::new(2)..Utf8Index::new(6));
+    /// let second_range = TextRange::from(Utf8Index::new(4)..Utf8Index::new(8));
+    /// let met_range = TextRange::from(Utf8Index::new(4)..Utf8Index::new(6));
+    /// assert_eq!(first_range.meet(second_range), met_range);
+    ///
+    /// // Reversed case.
+    /// assert_eq!(second_range.meet(first_range), met_range);
+    ///
+    /// // Disjoint case.
+    /// let third_range = TextRange::from(Utf8Index::new(9)..Utf8Index::new(10));
+    /// assert_eq!(first_range.meet(third_range), first_range.to_start());
+    /// ```
+    pub fn meet(self, other: Self) -> Self {
+        // QUESTION: More efficient way? Should return None if disjoint? 
+        let end = self.clone().end().min(other.clone().end());
+        let start = self.start().max(other.start());
+        Self::from(start..end)
+    }
 }
 
 impl<P: TextPosition + Default> Default for TextRange<P> {
