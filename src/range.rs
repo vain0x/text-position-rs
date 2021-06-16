@@ -3,7 +3,7 @@
 use crate::{position::TextPosition, CompositePosition, Utf16Position, Utf8Index, Utf8Position};
 use std::{
     fmt::{self, Debug, Display, Formatter},
-    ops::{Add, Range},
+    ops::{Add, Index, Range},
 };
 
 // DESIGN: Prefer (index, len) over (start, end)
@@ -233,9 +233,29 @@ impl Display for TextRange<CompositePosition> {
     }
 }
 
+impl Index<TextRange<Utf8Index>> for str {
+    type Output = str;
+
+    fn index(&self, index: TextRange<Utf8Index>) -> &str {
+        let start = index.index.index as usize;
+        let end = index.end().index as usize;
+        &self[start..end]
+    }
+}
+
+impl Index<TextRange<CompositePosition>> for str {
+    type Output = str;
+
+    fn index(&self, index: TextRange<CompositePosition>) -> &str {
+        let start = index.index.index as usize;
+        let end = index.end().index as usize;
+        &self[start..end]
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::{CompositePosition, TextPosition, TextRange, Utf8Position};
+    use crate::{CompositePosition, TextPosition, TextRange, Utf8Index, Utf8Position};
 
     #[test]
     fn test_contains_inclusive_for_other_type() {
@@ -265,5 +285,12 @@ mod tests {
             ),
             "1.8-1.13"
         );
+    }
+
+    #[test]
+    fn test_index() {
+        let range =
+            TextRange::from(Utf8Index::from_str("Hello ")..Utf8Index::from_str("Hello 🐧s"));
+        assert_eq!(&"Hello 🐧s world!"[range], "🐧s");
     }
 }
