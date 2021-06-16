@@ -18,7 +18,7 @@ Provide text position representations and range of them.
 In `Cargo.toml`:
 
 ```rs
-text-position-rs = { version = "0.3.0", git = "https://github.com/vain0x/text-position-rs", rev = "6a63f748d68c4f4a35ef43a82442741464d8e25c" }
+text-position-rs = { version = "0.4.0", git = "https://github.com/vain0x/text-position-rs", rev = "bd21ec0907ee28a5768c6eca5ea813c089ffa804" }
 ```
 
 *TODO: Publish to crates.io*
