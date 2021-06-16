@@ -10,7 +10,7 @@ use std::{
 /// Text position as (row, column) pair.
 /// Column number (= length of the final line) is measured as number of UTF-16 code units (basically half of bytes).
 /// Start from 0.
-#[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Copy, Clone, Default, Ord, PartialOrd, Eq, PartialEq, Hash)]
 pub struct Utf16Position {
     pub row: u32,
     pub column: u32,
