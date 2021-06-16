@@ -135,6 +135,12 @@ impl<P: TextPosition> TextRange<P> {
     }
 }
 
+impl<P: TextPosition + Default> Default for TextRange<P> {
+    fn default() -> Self {
+        Self::from(P::default()..P::default())
+    }
+}
+
 impl<P: TextPosition> From<Range<P>> for TextRange<P> {
     fn from(range: Range<P>) -> Self {
         let Range { start, end } = range;
